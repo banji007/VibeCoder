@@ -5,6 +5,7 @@ import { z } from "zod";
 export const ratings = pgTable("ratings", {
   id: serial("id").primaryKey(),
   rating: integer("rating").notNull(),
+  sessionId: text("session_id").notNull(),
 });
 
 export const insertRatingSchema = createInsertSchema(ratings).pick({

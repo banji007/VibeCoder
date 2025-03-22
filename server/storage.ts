@@ -2,8 +2,9 @@ import { ratings, type Rating, type InsertRating } from "@shared/schema";
 
 export interface IStorage {
   getRatings(): Promise<Rating[]>;
-  createRating(rating: InsertRating): Promise<Rating>;
+  createRating(rating: InsertRating, sessionId: string): Promise<Rating>;
   getRatingStats(): Promise<{ total: number; average: number }>;
+  hasUserRated(sessionId: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -19,9 +20,9 @@ export class MemStorage implements IStorage {
     return Array.from(this.ratings.values());
   }
 
-  async createRating(insertRating: InsertRating): Promise<Rating> {
+  async createRating(insertRating: InsertRating, sessionId: string): Promise<Rating> {
     const id = this.currentId++;
-    const rating: Rating = { ...insertRating, id };
+    const rating: Rating = { ...insertRating, id, sessionId };
     this.ratings.set(id, rating);
     return rating;
   }
@@ -32,6 +33,12 @@ export class MemStorage implements IStorage {
     const sum = ratings.reduce((acc, curr) => acc + curr.rating, 0);
     const average = total > 0 ? Math.round((sum / total) * 10) / 10 : 0;
     return { total, average };
+  }
+
+  async hasUserRated(sessionId: string): Promise<boolean> {
+    return Array.from(this.ratings.values()).some(
+      (rating) => rating.sessionId === sessionId
+    );
   }
 }
 
